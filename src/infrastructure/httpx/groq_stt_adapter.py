@@ -1,4 +1,5 @@
 import httpx
+from types import TracebackType
 
 from src.application.gateways.logger_gateway import LoggerGateway
 from src.application.gateways.stt_gateway import STTGateway
@@ -17,11 +18,39 @@ class GroqSTTAdapter(STTGateway):
         logger: LoggerGateway,
         api_url: str = "https://api.groq.com/openai/v1/audio/transcriptions",
         model: str = "whisper-large-v3",
+        client: httpx.AsyncClient | None = None,
     ) -> None:
         self._api_key = api_key
         self._logger = logger
         self._api_url = api_url
         self._model = model
+        self._shared_client = client
+        self._owned_client: httpx.AsyncClient | None = None
+
+    @property
+    def _client(self) -> httpx.AsyncClient:
+        if self._shared_client is not None:
+            return self._shared_client
+        if self._owned_client is None:
+            self._owned_client = httpx.AsyncClient(timeout=60.0)
+        return self._owned_client
+
+    async def aclose(self) -> None:
+        """Cierra el cliente HTTP interno si fue creado por este adaptador."""
+        if self._owned_client is not None:
+            await self._owned_client.aclose()
+            self._owned_client = None
+
+    async def __aenter__(self) -> "GroqSTTAdapter":
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        await self.aclose()
 
     async def transcribe(self, voice_note: VoiceNote) -> Transcription:
         file_name = voice_note.file_name or voice_note.file_id or "audio.ogg"
@@ -33,12 +62,11 @@ class GroqSTTAdapter(STTGateway):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(
-                    self._api_url, headers=headers, data=data, files=files
-                )
-                response.raise_for_status()
-                payload = response.json()
+            response = await self._client.post(
+                self._api_url, headers=headers, data=data, files=files
+            )
+            response.raise_for_status()
+            payload = response.json()
         except httpx.HTTPStatusError as exc:
             response = exc.response
             self._logger.error(

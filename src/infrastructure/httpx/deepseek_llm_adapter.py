@@ -1,4 +1,6 @@
 import json
+from types import TracebackType
+from typing import Type
 
 import httpx
 
@@ -43,11 +45,39 @@ class DeepSeekLLMAdapter(LLMGateway):
         logger: LoggerGateway,
         api_url: str = "https://api.deepseek.com/v1/chat/completions",
         model: str = "deepseek-chat",
+        client: httpx.AsyncClient | None = None,
     ) -> None:
         self._api_key = api_key
         self._logger = logger
         self._api_url = api_url
         self._model = model
+        self._shared_client = client
+        self._owned_client: httpx.AsyncClient | None = None
+
+    @property
+    def _client(self) -> httpx.AsyncClient:
+        if self._shared_client is not None:
+            return self._shared_client
+        if self._owned_client is None:
+            self._owned_client = httpx.AsyncClient(timeout=60.0)
+        return self._owned_client
+
+    async def aclose(self) -> None:
+        """Cierra el cliente HTTP interno si fue creado por este adaptador."""
+        if self._owned_client is not None:
+            await self._owned_client.aclose()
+            self._owned_client = None
+
+    async def __aenter__(self) -> "DeepSeekLLMAdapter":
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        await self.aclose()
 
     async def analyze_transcription(
         self, transcription: Transcription
@@ -66,12 +96,11 @@ class DeepSeekLLMAdapter(LLMGateway):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(
-                    self._api_url, headers=headers, json=payload
-                )
-                response.raise_for_status()
-                body = response.json()
+            response = await self._client.post(
+                self._api_url, headers=headers, json=payload
+            )
+            response.raise_for_status()
+            body = response.json()
             content = body["choices"][0]["message"]["content"]
             data = json.loads(content)
         except httpx.HTTPStatusError as exc:
