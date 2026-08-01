@@ -11,8 +11,13 @@ SYSTEM_PROMPT = (
     "JSON estructurado con exactamente estas dos llaves: "
     '"summary": un resumen claro, conciso y estructurado del audio en español; '
     'y "clarification_question": una única pregunta específica sobre alguna '
-    'duda, ambigüedad o punto clave del audio. Si el audio es 100% claro, '
-    "formula una pregunta de seguimiento relevante."
+    "duda, ambigüedad o punto clave del audio. Si el audio es 100% claro, "
+    "formula una pregunta de seguimiento relevante. "
+    "REGLA DE ORO: NUNCA narres en tercera persona ni hagas meta-referencias "
+    'al audio. PROHIBIDO usar frases como "El audio trata sobre...", "El '
+    'usuario menciona...", "Se habla de...". Redacta el resumen de forma '
+    "directa, objetiva y estructurada, enfocándote exclusivamente en las "
+    "ideas, decisiones o conceptos expuestos."
 )
 
 

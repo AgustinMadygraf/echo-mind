@@ -7,19 +7,21 @@ MAX_LENGTH = 4000
 
 class TelegramVoiceSummaryPresenter:
     @staticmethod
-    def format_response(summary: AudioSummary) -> str:
-        summary_text = html.escape(summary.summary)
-        question_text = html.escape(summary.clarification_question)
-
-        message = (
-            "<b>📝 Resumen:</b>\n"
-            f"{summary_text}\n\n"
-            "<b>🤔 Pregunta de clarificación:</b>\n"
-            f"{question_text}"
-        )
-
-        if len(message) > MAX_LENGTH:
-            message = message[:MAX_LENGTH]
-            message += "\n\n<i>...[Resumen truncado por límite de longitud]</i>"
-
+    def _truncate(message: str) -> str:
+        if len(message) <= MAX_LENGTH:
+            return message
+        message = message[:MAX_LENGTH]
+        message += "\n\n<i>...[Resumen truncado por límite de longitud]</i>"
         return message
+
+    @staticmethod
+    def format_summary(summary: AudioSummary) -> str:
+        summary_text = html.escape(summary.summary)
+        message = f"<b>📝 Resumen:</b>\n{summary_text}"
+        return TelegramVoiceSummaryPresenter._truncate(message)
+
+    @staticmethod
+    def format_question(summary: AudioSummary) -> str:
+        question_text = html.escape(summary.clarification_question)
+        message = f"<b>🤔 Pregunta de clarificación:</b>\n{question_text}"
+        return TelegramVoiceSummaryPresenter._truncate(message)

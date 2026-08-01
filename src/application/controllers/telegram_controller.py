@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
@@ -30,22 +32,32 @@ class TelegramController:
 
         try:
             await context.bot.send_chat_action(
-                chat_id=update.effective_chat.id, action="record_voice"
+                chat_id=update.message.chat_id, action="record_voice"
             )
 
             file = await context.bot.get_file(file_id=audio.file_id)
             file_bytes = await file.download_as_bytearray()
 
+            audio_duration = audio.duration
+            if isinstance(audio_duration, timedelta):
+                audio_duration = int(audio_duration.total_seconds())
+
             voice_note = VoiceNote(
                 file_id=audio.file_id,
                 file_bytes=bytes(file_bytes),
                 file_name=f"{audio.file_id}.ogg",
-                duration=audio.duration,
+                duration=audio_duration,
             )
 
             summary = await self._use_case.execute(voice_note)
-            response = TelegramVoiceSummaryPresenter.format_response(summary)
-            await processing_message.edit_text(response, parse_mode=ParseMode.HTML)
+            await processing_message.edit_text(
+                TelegramVoiceSummaryPresenter.format_summary(summary),
+                parse_mode=ParseMode.HTML,
+            )
+            await update.message.reply_text(
+                TelegramVoiceSummaryPresenter.format_question(summary),
+                parse_mode=ParseMode.HTML,
+            )
         except EmptyTranscriptionError:
             await processing_message.edit_text(
                 "⚠️ <b>Audio no procesable:</b> No se detectó ninguna "
