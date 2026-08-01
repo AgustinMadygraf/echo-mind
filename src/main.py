@@ -5,7 +5,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from telegram.ext import ApplicationBuilder, MessageHandler, filters
 
-from src.application.controllers.telegram_controller import TelegramController
 from src.application.use_cases.observed_process_voice_note import (
     ObservedProcessVoiceNoteUseCase,
 )
@@ -14,6 +13,7 @@ from src.config.settings import Settings
 from src.infrastructure.deepseek import DeepSeekLLMAdapter
 from src.infrastructure.groq import GroqSTTAdapter
 from src.infrastructure.logging.structured_logger import StructuredLoggerAdapter
+from src.infrastructure.telegram.telegram_controller import TelegramController
 
 
 def build_app() -> None:
