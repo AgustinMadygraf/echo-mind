@@ -1,8 +1,10 @@
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 from src.application.presenters.telegram_presenter import TelegramVoiceSummaryPresenter
 from src.application.use_cases.observed_process_voice_note import VoiceNoteUseCase
+from src.application.use_cases.process_voice_note import EmptyTranscriptionError
 from src.domain.entities.voice_note import VoiceNote
 
 
@@ -43,11 +45,16 @@ class TelegramController:
 
             summary = await self._use_case.execute(voice_note)
             response = TelegramVoiceSummaryPresenter.format_response(summary)
-            await processing_message.edit_text(response)
-        except Exception as exc:
-            message = (
-                "⚠️ Ocurrió un error al procesar tu nota de voz. "
-                "Inténtalo nuevamente en unos minutos."
-                f"\n\nDetalle: {exc}"
+            await processing_message.edit_text(response, parse_mode=ParseMode.HTML)
+        except EmptyTranscriptionError:
+            await processing_message.edit_text(
+                "⚠️ <b>Audio no procesable:</b> No se detectó ninguna "
+                "transcripción de voz clara en la nota enviada.",
+                parse_mode=ParseMode.HTML,
             )
-            await processing_message.edit_text(message)
+        except Exception:
+            await processing_message.edit_text(
+                "❌ <b>Error:</b> No fue posible procesar tu nota de voz en "
+                "este momento. Por favor intenta nuevamente.",
+                parse_mode=ParseMode.HTML,
+            )
