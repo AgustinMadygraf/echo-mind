@@ -2,12 +2,12 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from src.application.presenters.telegram_presenter import TelegramVoiceSummaryPresenter
-from src.application.use_cases.process_voice_note import ProcessVoiceNoteUseCase
+from src.application.use_cases.observed_process_voice_note import VoiceNoteUseCase
 from src.domain.entities.voice_note import VoiceNote
 
 
 class TelegramController:
-    def __init__(self, use_case: ProcessVoiceNoteUseCase) -> None:
+    def __init__(self, use_case: VoiceNoteUseCase) -> None:
         self._use_case = use_case
 
     async def handle_voice_note(

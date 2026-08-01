@@ -6,21 +6,40 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from telegram.ext import ApplicationBuilder, MessageHandler, filters
 
 from src.application.controllers.telegram_controller import TelegramController
+from src.application.use_cases.observed_process_voice_note import (
+    ObservedProcessVoiceNoteUseCase,
+)
 from src.application.use_cases.process_voice_note import ProcessVoiceNoteUseCase
 from src.config.settings import Settings
 from src.infrastructure.deepseek import DeepSeekLLMAdapter
 from src.infrastructure.groq import GroqSTTAdapter
+from src.infrastructure.logging.structured_logger import StructuredLoggerAdapter
 
 
 def build_app() -> None:
     settings = Settings.from_env()
 
-    stt_gateway = GroqSTTAdapter(api_key=settings.groq_api_key)
-    llm_gateway = DeepSeekLLMAdapter(api_key=settings.deepseek_api_key)
+    logger = StructuredLoggerAdapter(
+        secrets=[
+            settings.groq_api_key,
+            settings.deepseek_api_key,
+            settings.telegram_bot_token,
+        ]
+    )
+
+    stt_gateway = GroqSTTAdapter(
+        api_key=settings.groq_api_key, logger=logger
+    )
+    llm_gateway = DeepSeekLLMAdapter(
+        api_key=settings.deepseek_api_key, logger=logger
+    )
     use_case = ProcessVoiceNoteUseCase(
         stt_gateway=stt_gateway, llm_gateway=llm_gateway
     )
-    telegram_controller = TelegramController(use_case=use_case)
+    observed_use_case = ObservedProcessVoiceNoteUseCase(
+        use_case=use_case, logger=logger
+    )
+    telegram_controller = TelegramController(use_case=observed_use_case)
 
     app = (
         ApplicationBuilder()

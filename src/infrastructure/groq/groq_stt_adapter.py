@@ -1,5 +1,6 @@
 import httpx
 
+from src.application.gateways.logger_gateway import LoggerGateway
 from src.application.gateways.stt_gateway import STTGateway
 from src.domain.entities.voice_note import VoiceNote
 from src.domain.value_objects.audio_analysis import Transcription
@@ -13,10 +14,12 @@ class GroqSTTAdapter(STTGateway):
     def __init__(
         self,
         api_key: str,
+        logger: LoggerGateway,
         api_url: str = "https://api.groq.com/openai/v1/audio/transcriptions",
         model: str = "whisper-large-v3",
     ) -> None:
         self._api_key = api_key
+        self._logger = logger
         self._api_url = api_url
         self._model = model
 
@@ -36,7 +39,23 @@ class GroqSTTAdapter(STTGateway):
                 )
                 response.raise_for_status()
                 payload = response.json()
+        except httpx.HTTPStatusError as exc:
+            response = exc.response
+            self._logger.error(
+                "Groq STT request failed",
+                status_code=response.status_code,
+                response_body=response.text,
+                file_id=voice_note.file_id,
+            )
+            raise GroqSTTError(
+                f"Fallo la transcripción en Groq (HTTP {response.status_code})"
+            ) from exc
         except httpx.HTTPError as exc:
+            self._logger.error(
+                "Groq STT request failed",
+                detail=str(exc),
+                file_id=voice_note.file_id,
+            )
             raise GroqSTTError(f"Fallo la transcripción en Groq: {exc}") from exc
 
         text = payload.get("text", "").strip()
