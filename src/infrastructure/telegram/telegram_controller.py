@@ -4,10 +4,10 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from src.application.presenters.telegram_presenter import TelegramVoiceSummaryPresenter
 from src.application.use_cases.observed_process_voice_note import VoiceNoteUseCase
 from src.application.use_cases.process_voice_note import EmptyTranscriptionError
 from src.domain.entities.voice_note import VoiceNote
+from src.infrastructure.telegram.telegram_presenter import TelegramVoiceSummaryPresenter
 
 
 class TelegramController:
