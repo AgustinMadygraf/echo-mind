@@ -1,0 +1,17 @@
+[Unit]
+Description=Echo Mind Telegram Voice Summarizer Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/proyectos_software/echo-mind
+ExecStart=/root/proyectos_software/echo-mind/run.sh
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
