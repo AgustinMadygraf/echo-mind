@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from telegram.ext import ApplicationBuilder, MessageHandler, filters
 
 from src.application.controllers.telegram_controller import TelegramController
