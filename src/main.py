@@ -10,8 +10,8 @@ from src.application.use_cases.observed_process_voice_note import (
 )
 from src.application.use_cases.process_voice_note import ProcessVoiceNoteUseCase
 from src.config.settings import Settings
-from src.infrastructure.deepseek import DeepSeekLLMAdapter
-from src.infrastructure.groq import GroqSTTAdapter
+from src.infrastructure.httpx import DeepSeekLLMAdapter
+from src.infrastructure.httpx import GroqSTTAdapter
 from src.infrastructure.logging.structured_logger import StructuredLoggerAdapter
 from src.infrastructure.telegram.telegram_controller import TelegramController
 
