@@ -28,19 +28,6 @@ else
     VPS_TARGET="root@$VPS_RAW"
 fi
 
-# Colores para salidas legibles en terminal.
-if [ -t 1 ]; then
-    BOLD="\033[1m"
-    GREEN="\033[32m"
-    YELLOW="\033[33m"
-    RESET="\033[0m"
-else
-    BOLD=""
-    GREEN=""
-    YELLOW=""
-    RESET=""
-fi
-
 echo "==> Desplegando en ${VPS_TARGET}:${VPS_PORT} (${REMOTE_DIR})..."
 
 ssh -T \
@@ -53,21 +40,21 @@ set -euo pipefail
 cd "${REMOTE_DIR}"
 
 echo ""
-echo "==> [1/4] ${BOLD}Git Pull${RESET} (git pull origin main)..."
+echo -e "==> [1/4] \033[1mGit Pull\033[0m (git pull origin main)..."
 git pull origin main
 
 echo ""
-echo "==> [2/4] ${BOLD}Restart${RESET} (systemctl restart echo-mind)..."
+echo -e "==> [2/4] \033[1mRestart\033[0m (systemctl restart echo-mind)..."
 systemctl restart echo-mind
 
 echo ""
-echo "==> [3/4] ${BOLD}Status${RESET} (systemctl status echo-mind)..."
+echo -e "==> [3/4] \033[1mStatus\033[0m (systemctl status echo-mind)..."
 systemctl status echo-mind --no-pager
 
 echo ""
-echo "==> [4/4] ${BOLD}Logs${RESET} (journalctl -u echo-mind -n 15)..."
+echo -e "==> [4/4] \033[1mLogs\033[0m (journalctl -u echo-mind -n 15)..."
 journalctl -u echo-mind -n 15 --no-pager
 
 echo ""
-echo "${GREEN}${BOLD}==> ✔ Despliegue completado con éxito.${RESET}"
+echo -e "\033[32m\033[1m==> ✔ Despliegue completado con éxito.\033[0m"
 EOF
