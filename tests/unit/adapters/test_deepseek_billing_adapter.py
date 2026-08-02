@@ -2,7 +2,7 @@ import asyncio
 import io
 import logging
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import httpx
 

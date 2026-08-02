@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, cast
 
 from src.application.gateways.logger_gateway import LoggerGateway
@@ -91,7 +91,7 @@ class _JsonFormatter(_BaseFormatter):
 
     def format(self, record: logging.LogRecord) -> str:
         entry: dict[str, Any] = {
-            "ts": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "ts": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "msg": record.getMessage(),
         }
@@ -136,7 +136,7 @@ class StructuredLoggerAdapter(LoggerGateway):
 
     def _emit(self, level: str, msg: str, **kwargs: Any) -> None:
         data = {
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "level": level.upper(),
             "msg": msg,
         }

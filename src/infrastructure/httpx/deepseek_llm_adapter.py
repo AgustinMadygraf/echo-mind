@@ -1,6 +1,5 @@
 import json
 from types import TracebackType
-from typing import Type
 
 import httpx
 
@@ -73,7 +72,7 @@ class DeepSeekLLMAdapter(LLMGateway):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:

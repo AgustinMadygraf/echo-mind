@@ -1,5 +1,6 @@
-import httpx
 from typing import cast
+
+import httpx
 
 from src.application.gateways.billing_gateway import BillingGateway
 from src.application.gateways.logger_gateway import LoggerGateway

@@ -1,5 +1,6 @@
-import httpx
 from types import TracebackType
+
+import httpx
 
 from src.application.gateways.logger_gateway import LoggerGateway
 from src.application.gateways.stt_gateway import STTGateway
