@@ -1,4 +1,5 @@
 import httpx
+from typing import cast
 
 from src.application.gateways.billing_gateway import BillingGateway
 from src.application.gateways.logger_gateway import LoggerGateway
@@ -51,20 +52,30 @@ class DeepSeekBillingAdapter(BillingGateway):
 
         return self._parse_balance(payload)
 
-    def _parse_balance(self, payload: dict) -> AccountBalance:
+    def _parse_balance(self, payload: dict[str, object]) -> AccountBalance:
         try:
-            data = payload["data"]
+            # La API devuelve la estructura directamente en la raíz:
+            #   {"is_available": true, "balance_infos": [{"currency", "total_balance", ...}]}
+            data: dict[str, object] = cast(
+                dict[str, object],
+                payload.get("data", payload),
+            )
             is_available = bool(data.get("is_available", False))
-            balance_infos = data.get("balance_infos", [])
-            currency = "USD"
+            balance_infos = cast(
+                list[dict[str, object]],
+                data.get("balance_infos", []),
+            )
+            currency: str = "USD"
             balance_usd = 0.0
             for info in balance_infos:
                 total_balance = info.get("total_balance")
                 if total_balance is not None:
-                    balance_usd = float(total_balance)
-                    currency = info.get("currency", "USD")
+                    balance_usd = float(str(total_balance))
+                    fetched_currency = info.get("currency")
+                    if isinstance(fetched_currency, str):
+                        currency = fetched_currency
                     break
-        except (KeyError, TypeError, ValueError) as exc:
+        except (TypeError, ValueError) as exc:
             self._logger.error(
                 "DeepSeek balance response could not be parsed",
                 detail=str(exc),
